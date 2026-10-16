@@ -1,0 +1,19 @@
+name: Test Copernicus
+on:
+  workflow_dispatch:
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar herramienta
+        run: pip install copernicusmarine
+      - name: Listar datasets del producto
+        env:
+          COPERNICUSMARINE_SERVICE_USERNAME: ${{ secrets.COPERNICUSMARINE_SERVICE_USERNAME }}
+          COPERNICUSMARINE_SERVICE_PASSWORD: ${{ secrets.COPERNICUSMARINE_SERVICE_PASSWORD }}
+        run: |
+          copernicusmarine describe --contains GLOBAL_ANALYSISFORECAST_PHY_001_024 > salida.json
+          grep -o '"dataset_id": "[^"]*"' salida.json || head -c 3000 salida.json
