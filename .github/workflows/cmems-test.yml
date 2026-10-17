@@ -10,10 +10,19 @@ jobs:
           python-version: '3.12'
       - name: Instalar herramienta
         run: pip install copernicusmarine
-      - name: Describir dataset horario
+      - name: Descargar subconjunto pequeño
         env:
           COPERNICUSMARINE_SERVICE_USERNAME: ${{ secrets.COPERNICUSMARINE_SERVICE_USERNAME }}
           COPERNICUSMARINE_SERVICE_PASSWORD: ${{ secrets.COPERNICUSMARINE_SERVICE_PASSWORD }}
         run: |
-          copernicusmarine describe --dataset-id cmems_mod_glo_phy_anfc_merged-uv_PT1H-i > salida.json
-          grep -E '"(short_name|standard_name|coordinate_id|minimum_value|maximum_value)"' salida.json | head -60
+          INI=$(date -u -d '2 days ago' +%Y-%m-%dT%H:00:00)
+          FIN=$(date -u -d '2 days ago + 3 hours' +%Y-%m-%dT%H:00:00)
+          copernicusmarine subset \
+            --dataset-id cmems_mod_glo_phy_anfc_merged-uv_PT1H-i \
+            --variable uo --variable vo \
+            --minimum-longitude -18.5 --maximum-longitude -12.5 \
+            --minimum-latitude 24.5 --maximum-latitude 30.5 \
+            --minimum-depth 0 --maximum-depth 1 \
+            --start-datetime $INI --end-datetime $FIN \
+            --output-directory salida --force-download
+          ls -lh salida
